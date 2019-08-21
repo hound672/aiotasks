@@ -11,7 +11,6 @@ python = "^3.7"
 [tool.poetry.dev-dependencies]
 pytest = "^3.0"
 mypy = "^0.720.0"
-pytest-aiohttp = "^0.3.0"
 pytest-cov = "^2.6.1"
 factory-boy = "^2.11.1"
 
