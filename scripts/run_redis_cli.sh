@@ -1,2 +1,2 @@
 #!/bin/bash
-docker-compose run --rm redis redis-cli -h redis
+docker-compose run --service-ports --rm redis redis-cli -h redis
