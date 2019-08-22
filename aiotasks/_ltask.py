@@ -45,7 +45,6 @@ class LTask:
             try:
                 res = await self._coro
             except Exception as e:
-                print(type(e))
                 exc = e
             finally:
                 await self._task_done(res, exc)
@@ -55,21 +54,4 @@ class LTask:
         )
 
     async def _task_done(self, result: Any, exc: Any):  # FIXME exc have to have type
-        print(f'Task is done. Res: {result}. exc: {exc}')
-
-
-########################################################
-
-class TClass:
-    async def method_1(self):
-        return await self.method_2()
-
-    async def method_2(self):
-        return 123
-
-async def func1():
-    return 123
-
-async def func2():
-    res = await func1()
-    return res
+        await self._ltask_manager.ltask_done(self)

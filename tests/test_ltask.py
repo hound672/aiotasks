@@ -1,17 +1,14 @@
 import asyncio
 from unittest import mock
 
-def test__task_done_called(ltask_manager, event_loop):
+def test__task_done_called(event_loop, ltask_manager):
 
-    async def _fake_coro():
-        pass
-
-    async def _fake_task_done(self = None, result = None, exc = None):
+    async def _test_task():
         pass
 
     async def run():
         with mock.patch('aiotasks._ltask.LTask._task_done') as mocked:
-            await ltask_manager.create_ltask(_fake_coro())
+            await ltask_manager.create_ltask(_test_task())
             await asyncio.sleep(1)
             assert mocked.called
 
