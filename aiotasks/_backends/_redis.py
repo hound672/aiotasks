@@ -2,7 +2,6 @@ import json
 
 import aioredis
 
-from aiotasks._structs import LTaskInfo
 from ._base import BaseBackend
 from .._exceptions import ErrorConnectBackend
 
