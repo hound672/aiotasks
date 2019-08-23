@@ -10,6 +10,9 @@ class LTask:
     """Class wrapper for asyncio tasks"""
 
     _task: Optional[asyncio.tasks.Task] = None
+    _done: bool = False
+    _res: Optional[Any] = None
+    _exc: Optional[Exception] = None
 
     def __init__(self, *,
                  ltask_manager: 'LTaskManager',
@@ -32,36 +35,36 @@ class LTask:
     def uuid(self) -> str:
         return self._uuid
 
+    @property
+    def res(self) -> Optional[Any]:
+        return self._res
+
+    @property
+    def exc(self) -> Optional[Exception]:
+        return self._exc
+
     def __repr__(self) -> str:
         return f'<LTask: {self._uuid}>'
 
-    async def wait(self):
+    async def wait(self) -> None:
         """Wait for task"""
         try:
             return await asyncio.shield(self._task)
         except Exception:
             raise
 
-    async def start(self):
+    def start(self) -> None:
         """Start coro as task"""
         assert self._task is None
 
-        # with _wrap we are able to have async done_callback
-        async def _wrap():
-            res, exc = None, None
-            try:
-                res = await self._coro
-            except Exception as e:
-                exc = e
-                raise  # raise exception for wait() method
-            else:
-                return res
-            finally:
-                await self._task_done(res, exc)
-
         self._task = asyncio.create_task(
-            asyncio.wait_for(_wrap(), self._timeout)
+            asyncio.wait_for(self._coro, self._timeout)
         )
+        self._task.add_done_callback(self._task_done)
 
-    async def _task_done(self, result: Any, exc: Exception):  # FIXME exc have to have type
-        await self._ltask_manager._ltask_done(self)
+    def _task_done(self, task: asyncio.Task) -> None:
+        self._done = True
+        try:
+            self._res = task.result()
+        except Exception as e:
+            self._exc = e

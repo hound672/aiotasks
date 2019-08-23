@@ -38,7 +38,7 @@ class LTaskManager:
         )
 
 
-    async def create_ltask(self,
+    def create_ltask(self,
                            coro: Coroutine[Any, Any, Any],
                            timeout: Optional[int] = None) -> str:
         """Create ltask from coroutine"""
@@ -49,9 +49,9 @@ class LTaskManager:
             timeout=timeout
         )
         self._ltasks[ltask.uuid] = ltask
-        await ltask.start()
+        ltask.start()
 
         return ltask.uuid
 
-    async def _ltask_done(self, ltask: LTask):
+    def _ltask_done(self, ltask: LTask):
         self._ltasks.pop(ltask.uuid)
