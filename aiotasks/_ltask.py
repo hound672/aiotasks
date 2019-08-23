@@ -6,6 +6,7 @@ from typing import Coroutine, Any, Optional
 if typing.TYPE_CHECKING:
     from ._ltask_manager import LTaskManager  # pragma: no cover
 
+from ._typing import LTaskUuid
 from ._exceptions import LTaskNotStarted
 
 class LTask:
@@ -28,13 +29,13 @@ class LTask:
         :param loop: base event loop
         """
         self._ltask_manager = ltask_manager
-        self._uuid = uuid.uuid4().hex
+        self._uuid = LTaskUuid(uuid.uuid4().hex)
         self._coro = coro
         self._loop = loop
         self._timeout = timeout
 
     @property
-    def uuid(self) -> str:
+    def uuid(self) -> LTaskUuid:
         return self._uuid
 
     @property

@@ -3,3 +3,6 @@ class AiotasksException(Exception):
 
 class LTaskNotStarted(AiotasksException):
     pass
+
+class LTaskNotFount(AiotasksException):
+    pass

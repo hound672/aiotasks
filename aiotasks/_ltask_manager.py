@@ -1,8 +1,10 @@
 import asyncio
 from typing import Coroutine, Any, Dict, Optional
 
-from ._ltask import LTask
 from .backends._base import BaseBackend
+from ._ltask import LTask
+from ._typing import LTaskUuid
+from ._exceptions import LTaskNotFount
 
 
 class LTaskManager:
@@ -19,7 +21,7 @@ class LTaskManager:
         self._loop = loop
         self._backend = backend
         self._limit_active_ltasks = limit_active_ltasks
-        self._ltasks: Dict[str, LTask] = {}
+        self._ltasks: Dict[LTaskUuid, LTask] = {}
 
     def __len__(self):
         return len(self._ltasks)
@@ -39,7 +41,7 @@ class LTaskManager:
 
     def create_ltask(self,
                      coro: Coroutine[Any, Any, Any],
-                     timeout: Optional[int] = None) -> str:
+                     timeout: Optional[int] = None) -> LTaskUuid:
         """Create ltask from coroutine"""
         ltask = LTask(
             ltask_manager=self,
@@ -51,6 +53,15 @@ class LTaskManager:
         ltask.start()
 
         return ltask.uuid
+
+    def cancel_task(self, ltask_uuid: LTaskUuid):
+        """Cancel ltask by its uuid"""
+        try:
+            ltask = self._ltasks[ltask_uuid]
+        except KeyError:
+            raise LTaskNotFount
+
+        ltask.cancel()
 
     def _ltask_done(self, ltask: LTask):
         self._ltasks.pop(ltask.uuid)
