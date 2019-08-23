@@ -44,8 +44,8 @@ def test_wait_result(event_loop, ltask_manager, faker):
         return task_result_value
 
     async def run():
-        uuid_task = ltask_manager.create_ltask(_test_task())
-        _task = ltask_manager._ltasks[uuid_task]
+        ltask_uuid = ltask_manager.create_ltask(_test_task())
+        _task = ltask_manager._ltasks[ltask_uuid]
         res = await _task.wait()
         assert res == task_result_value
         assert _task._done
@@ -58,8 +58,8 @@ def test_wait_exception(event_loop, ltask_manager, faker):
         raise SomeException
 
     async def run():
-        uuid_task = ltask_manager.create_ltask(_test_task())
-        _task = ltask_manager._ltasks[uuid_task]
+        ltask_uuid = ltask_manager.create_ltask(_test_task())
+        _task = ltask_manager._ltasks[ltask_uuid]
         with pytest.raises(SomeException):
             await _task.wait()
 
@@ -72,8 +72,8 @@ def test__task_done_result(event_loop, ltask_manager, faker):
         return task_result_value
 
     async def run():
-        uuid_task = ltask_manager.create_ltask(_test_task())
-        _task = ltask_manager._ltasks[uuid_task]
+        ltask_uuid = ltask_manager.create_ltask(_test_task())
+        _task = ltask_manager._ltasks[ltask_uuid]
         await _task.wait()
         assert _task.res == task_result_value
 
@@ -85,8 +85,8 @@ def test__task_done_exception(event_loop, ltask_manager):
         raise SomeException
 
     async def run():
-        uuid_task = ltask_manager.create_ltask(_test_task())
-        _task = ltask_manager._ltasks[uuid_task]
+        ltask_uuid = ltask_manager.create_ltask(_test_task())
+        _task = ltask_manager._ltasks[ltask_uuid]
         try:
             await _task.wait()
         except:

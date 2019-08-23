@@ -68,3 +68,4 @@ class LTask:
             self._res = task.result()
         except Exception as e:
             self._exc = e
+        self._ltask_manager._ltask_done(self)
