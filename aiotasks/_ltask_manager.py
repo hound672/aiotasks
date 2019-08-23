@@ -30,17 +30,16 @@ class LTaskManager:
                                    ) -> 'LTaskManager':
         """Create new instance of LTaskManager"""
         loop = asyncio.get_event_loop()
-        backend = None # TODO !!!
+        backend = None  # TODO !!!
         return cls(
             loop=loop,
             backend=backend,
-            limit_active_ltasks = limit_active_ltasks
+            limit_active_ltasks=limit_active_ltasks
         )
 
-
     def create_ltask(self,
-                           coro: Coroutine[Any, Any, Any],
-                           timeout: Optional[int] = None) -> str:
+                     coro: Coroutine[Any, Any, Any],
+                     timeout: Optional[int] = None) -> str:
         """Create ltask from coroutine"""
         ltask = LTask(
             ltask_manager=self,

@@ -6,6 +6,8 @@ from typing import Coroutine, Any, Optional
 if typing.TYPE_CHECKING:
     from ._ltask_manager import LTaskManager  # pragma: no cover
 
+from ._exceptions import LTaskNotStarted
+
 class LTask:
     """Class wrapper for asyncio tasks"""
 
@@ -46,10 +48,10 @@ class LTask:
     def __repr__(self) -> str:
         return f'<LTask: {self._uuid}>'
 
-    async def wait(self) -> None:
+    async def wait(self) -> Optional[Any]:
         """Wait for task"""
         try:
-            return await asyncio.shield(self._task)
+            return await self._task  # type: ignore
         except Exception:
             raise
 
@@ -61,6 +63,12 @@ class LTask:
             asyncio.wait_for(self._coro, self._timeout)
         )
         self._task.add_done_callback(self._task_done)
+
+    def cancel(self) -> None:
+        """Cancel current task"""
+        if self._task is None:
+            raise LTaskNotStarted
+        self._task.cancel()
 
     def _task_done(self, task: asyncio.Task) -> None:
         self._done = True

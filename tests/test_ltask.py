@@ -3,6 +3,9 @@ from unittest import mock
 
 import pytest
 
+from aiotasks._ltask import LTask
+from aiotasks._exceptions import LTaskNotStarted
+
 
 class SomeException(Exception):
     pass
@@ -113,3 +116,38 @@ def test_timeout_task(event_loop, ltask_manager):
 
     event_loop.run_until_complete(run())
 
+def test_cancel_error(event_loop, ltask_manager):
+    async def _test_task():
+        pass
+
+    async def run():
+        task = LTask(
+            ltask_manager=ltask_manager,
+            coro=_test_task(),
+            loop=event_loop
+        )
+        with pytest.raises(LTaskNotStarted):
+            task.cancel()
+
+    event_loop.run_until_complete(run())
+
+
+def test_cancel(event_loop, ltask_manager):
+    async def _test_task():
+        await asyncio.sleep(5)
+
+    async def run():
+        uuid_task = ltask_manager.create_ltask(
+            _test_task()
+        )
+        _task = ltask_manager._ltasks[uuid_task]
+        _task.cancel()
+        with pytest.raises(asyncio.CancelledError):
+            await _task.wait()
+
+        assert isinstance(_task.exc, asyncio.CancelledError)
+        assert _task.res is None
+
+
+
+    event_loop.run_until_complete(run())
