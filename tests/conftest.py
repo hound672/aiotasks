@@ -1,6 +1,13 @@
 import pytest
 
+from faker import Factory
+
 from aiotasks._ltask_manager import LTaskManager
+
+@pytest.fixture
+def faker():
+    """Faker object"""
+    return Factory.create()
 
 @pytest.fixture
 def ltask_manager(event_loop):

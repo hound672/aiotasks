@@ -53,6 +53,9 @@ class LTask:
                 res = await self._coro
             except Exception as e:
                 exc = e
+                raise  # raise exception for wait() method
+            else:
+                return res
             finally:
                 await self._task_done(res, exc)
 
@@ -60,5 +63,5 @@ class LTask:
             asyncio.wait_for(_wrap(), self._timeout)
         )
 
-    async def _task_done(self, result: Any, exc: Any):  # FIXME exc have to have type
-        await self._ltask_manager.ltask_done(self)
+    async def _task_done(self, result: Any, exc: Exception):  # FIXME exc have to have type
+        await self._ltask_manager._ltask_done(self)

@@ -24,7 +24,7 @@ def test_ltask_done_called(event_loop, ltask_manager):
         pass
 
     async def run():
-        with mock.patch('aiotasks._ltask_manager.LTaskManager.ltask_done', return_value=_fake()) as mocked:
+        with mock.patch('aiotasks._ltask_manager.LTaskManager._ltask_done', return_value=_fake()) as mocked:
             await ltask_manager.create_ltask(_test_task())
             await asyncio.sleep(1)
             assert mocked.called

@@ -53,6 +53,5 @@ class LTaskManager:
 
         return ltask.uuid
 
-    async def ltask_done(self, ltask: LTask):
+    async def _ltask_done(self, ltask: LTask):
         self._ltasks.pop(ltask.uuid)
-        await asyncio.sleep(10)
