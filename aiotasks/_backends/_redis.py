@@ -1,4 +1,4 @@
-import asyncio
+import json
 
 import aioredis
 
@@ -18,5 +18,16 @@ class RedisBackend(BaseBackend):
         except Exception:
             raise ErrorConnectBackend
 
-    # async def _write_task_info(self, task_info: LTaskInfo) -> None:
-    #     pass
+    async def close(self) -> None:
+        self._redis.close()  # pragma: no cover
+
+    async def _write(self, key: str, value: dict) -> None:
+        data = json.dumps(value)
+        await self._redis.set(key=key, value=data)
+
+    async def _read(self, key: str) -> dict:
+        data = await self._redis.get(key=key)
+        try:
+            return json.loads(data)
+        except:
+            raise BaseBackend.RecordNotFound

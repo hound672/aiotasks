@@ -23,6 +23,10 @@ class BaseBackend(ABC):
         pass
 
     @abstractmethod
+    async def close(self) -> None:  #pragma: no cover
+        pass
+
+    @abstractmethod
     async def _write(self, key: str, value: dict) -> None:  #pragma: no cover
         pass
 

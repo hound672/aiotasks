@@ -15,6 +15,9 @@ class DummyBackend(BaseBackend):
     async def connect(self):
         pass
 
+    async def close(self) -> None:
+        pass
+
     async def _write(self, key: str, value: dict) -> None:
         pass
 
