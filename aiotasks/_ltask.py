@@ -10,7 +10,7 @@ from ._typing import LTaskUuid
 from ._exceptions import LTaskNotStarted
 
 class LTask:
-    """Class wrapper for asyncio tasks"""
+    """Class for internal usage. Wrapper for asynctio.Task"""
 
     _task: Optional[asyncio.tasks.Task] = None
     _done: bool = False

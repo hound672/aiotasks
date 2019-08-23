@@ -1,7 +1,7 @@
 import asyncio
 from typing import Coroutine, Any, Dict, Optional
 
-from .backends._base import BaseBackend
+from ._backends._base import BaseBackend
 from ._ltask import LTask
 from ._typing import LTaskUuid
 from ._exceptions import LTaskNotFount
@@ -23,16 +23,18 @@ class LTaskManager:
         self._limit_active_ltasks = limit_active_ltasks
         self._ltasks: Dict[LTaskUuid, LTask] = {}
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self._ltasks)
 
     @classmethod
     async def create_ltask_manager(cls, *,
-                                   limit_active_ltasks: int = 10
+                                   limit_active_ltasks: int = 10,
+                                   back_end_url: str
                                    ) -> 'LTaskManager':
         """Create new instance of LTaskManager"""
         loop = asyncio.get_event_loop()
         backend = None  # TODO !!!
+        # TODO try connect to backend
         return cls(
             loop=loop,
             backend=backend,
@@ -50,11 +52,12 @@ class LTaskManager:
             timeout=timeout
         )
         self._ltasks[ltask.uuid] = ltask
+        # TODO write to backend ltasks's info
         ltask.start()
 
         return ltask.uuid
 
-    def cancel_task(self, ltask_uuid: LTaskUuid):
+    def cancel_task(self, ltask_uuid: LTaskUuid) -> None:
         """Cancel ltask by its uuid"""
         try:
             ltask = self._ltasks[ltask_uuid]
@@ -63,5 +66,5 @@ class LTaskManager:
 
         ltask.cancel()
 
-    def _ltask_done(self, ltask: LTask):
+    def _ltask_done(self, ltask: LTask) -> None:
         self._ltasks.pop(ltask.uuid)
