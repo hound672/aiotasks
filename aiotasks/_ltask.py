@@ -4,7 +4,7 @@ import typing
 from typing import Coroutine, Any, Optional
 
 if typing.TYPE_CHECKING:
-    from ._ltask_manager import LTaskManager
+    from ._ltask_manager import LTaskManager  # pragma: no cover
 
 class LTask:
     """Class wrapper for asyncio tasks"""
@@ -15,7 +15,7 @@ class LTask:
                  ltask_manager: 'LTaskManager',
                  coro: Coroutine[Any, Any, Any],
                  loop: asyncio.AbstractEventLoop,
-                 timeout: int # TODO !!!
+                 timeout: Optional[int] = None
                  ) -> None:
         """
         :param ltask_manager: Main TaskManager
@@ -34,6 +34,13 @@ class LTask:
 
     def __repr__(self) -> str:
         return f'<LTask: {self._uuid}>'
+
+    async def wait(self):
+        """Wait for task"""
+        try:
+            return await asyncio.shield(self._task)
+        except Exception:
+            raise
 
     async def start(self):
         """Start coro as task"""

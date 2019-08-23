@@ -1,5 +1,5 @@
 import asyncio
-from typing import Coroutine, Any, Dict
+from typing import Coroutine, Any, Dict, Optional
 
 from ._ltask import LTask
 from .backends._base import BaseBackend
@@ -40,7 +40,7 @@ class LTaskManager:
 
     async def create_ltask(self,
                            coro: Coroutine[Any, Any, Any],
-                           timeout: int = 60) -> str:
+                           timeout: Optional[int] = None) -> str:
         """Create ltask from coroutine"""
         ltask = LTask(
             ltask_manager=self,
@@ -55,3 +55,4 @@ class LTaskManager:
 
     async def ltask_done(self, ltask: LTask):
         self._ltasks.pop(ltask.uuid)
+        await asyncio.sleep(10)
