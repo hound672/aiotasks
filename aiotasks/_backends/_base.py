@@ -37,23 +37,28 @@ class BaseBackend(ABC):
         pass
 
     @staticmethod
+    def _get_task_key(ltask_uuid: LTaskUuid) -> str:
+        """Return ltask's key as it stores in backend"""
+        return f'aiotasks-task-{ltask_uuid}'
+
+    @staticmethod
     def _convert_from_ltask_info(ltask_info: LTaskInfo) -> Tuple[str, dict]:
         """Convert from LTaskInfo to key and value for write to backend"""
-        key = str(ltask_info.uuid)
+        key = BaseBackend._get_task_key(ltask_info.uuid)
         value = {
             'status': ltask_info.status.value
         }
         return key, value
 
     @staticmethod
-    def _convert_to_ltask_info(key: str, value: dict) -> LTaskInfo:
+    def _convert_to_ltask_info(ltask_uuid: LTaskUuid, value: dict) -> LTaskInfo:
         """Convert data from backend to LTaskInfo"""
         if not isinstance(value, dict):
             raise LTaskNotFount
 
         try:
             ltask_info = LTaskInfo(
-                uuid=LTaskUuid(key),
+                uuid=ltask_uuid,
                 status=LTaskStatus(value['status'])
             )
         except (ValueError, KeyError):
@@ -71,11 +76,11 @@ class BaseBackend(ABC):
         Read task info from backend
         Raise LTaskNotFount if ltask was not found
         """
-        key = str(ltask_uuid)
+        key = BaseBackend._get_task_key(ltask_uuid)
         try:
             value = await self._read(key)
         except BaseBackend.RecordNotFound:
             raise LTaskNotFount
 
-        return BaseBackend._convert_to_ltask_info(key, value)
+        return BaseBackend._convert_to_ltask_info(ltask_uuid, value)
 

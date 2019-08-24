@@ -35,7 +35,7 @@ def test_write_task_info(event_loop, dummy_backend):
                            status=random.choice(list(LTaskStatus)))
 
     async def _fake(self, key: str, value: dict):
-        assert key == ltask_info.uuid
+        assert key == f'aiotasks-task-{ltask_info.uuid}'
         assert value == {'status': ltask_info.status.value}
 
     async def run():
@@ -97,7 +97,7 @@ def test_read_task_info_record(event_loop, dummy_backend):
                            status=random.choice(list(LTaskStatus)))
 
     async def _fake(self, key: str):
-        assert key == ltask_info.uuid
+        assert key == f'aiotasks-task-{ltask_info.uuid}'
         return {'status': ltask_info.status.value}
 
     async def run():

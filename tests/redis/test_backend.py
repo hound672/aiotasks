@@ -66,7 +66,7 @@ def test_write_task_info(event_loop, redis_backend, redis_client):
 
     async def run():
         await redis_backend.write_task_info(ltask_info)
-        read = await redis_client.get(ltask_info.uuid)
+        read = await redis_client.get(BaseBackend._get_task_key(ltask_info.uuid))
         assert read is not None
         assert json.loads(read) == {
             'status': ltask_info.status.value
@@ -83,7 +83,7 @@ def test_read_task_info(event_loop, redis_backend, redis_client):
         data = {
             'status': ltask_info.status.value
         }
-        await redis_client.set(key=ltask_info.uuid, value=json.dumps(data))
+        await redis_client.set(key=BaseBackend._get_task_key(ltask_info.uuid), value=json.dumps(data))
         ltask_read = await redis_backend.read_task_info(ltask_uuid=ltask_info.uuid)
         assert ltask_read == ltask_info
 
