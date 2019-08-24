@@ -1,5 +1,6 @@
 import asyncio
 from abc import ABC, abstractmethod
+from typing import Tuple
 
 from .._structs import LTaskInfo, LTaskStatus
 from .._typing import LTaskUuid
@@ -32,35 +33,49 @@ class BaseBackend(ABC):
 
     @abstractmethod
     async def _read(self, key: str) -> dict:  #pragma: no cover
+        """Should raise RecordNotFound exception if record was not found"""
         pass
 
-    async def write_task_info(self, ltask_info: LTaskInfo) -> None:
-        """Convert LTaskInfo and write to backend"""
+    @staticmethod
+    def _convert_from_ltask_info(ltask_info: LTaskInfo) -> Tuple[str, dict]:
+        """Convert from LTaskInfo to key and value for write to backend"""
         key = str(ltask_info.uuid)
         value = {
             'status': ltask_info.status.value
         }
-        await self._write(key=key, value=value)
+        return key, value
 
-    async def read_task_info(self, ltask_uuid: LTaskUuid) -> LTaskInfo:
-        """
-        Read task info from backend
-        Raise LTaskNotFount is ltask was not found
-        """
-        try:
-            data = await self._read(str(ltask_uuid))
-        except BaseBackend.RecordNotFound:
-            raise LTaskNotFount
-
-        if not isinstance(data, dict):
+    @staticmethod
+    def _convert_to_ltask_info(key: str, value: dict) -> LTaskInfo:
+        """Convert data from backend to LTaskInfo"""
+        if not isinstance(value, dict):
             raise LTaskNotFount
 
         try:
             ltask_info = LTaskInfo(
-                uuid=ltask_uuid,
-                status=LTaskStatus(data['status'])
+                uuid=LTaskUuid(key),
+                status=LTaskStatus(value['status'])
             )
         except (ValueError, KeyError):
             raise LTaskNotFount
 
         return ltask_info
+
+    async def write_task_info(self, ltask_info: LTaskInfo) -> None:
+        """Convert LTaskInfo and write to backend"""
+        key, value = BaseBackend._convert_from_ltask_info(ltask_info)
+        await self._write(key=key, value=value)
+
+    async def read_task_info(self, ltask_uuid: LTaskUuid) -> LTaskInfo:
+        """
+        Read task info from backend
+        Raise LTaskNotFount if ltask was not found
+        """
+        key = str(ltask_uuid)
+        try:
+            value = await self._read(key)
+        except BaseBackend.RecordNotFound:
+            raise LTaskNotFount
+
+        return BaseBackend._convert_to_ltask_info(key, value)
+

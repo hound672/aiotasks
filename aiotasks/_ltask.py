@@ -51,10 +51,7 @@ class LTask:
 
     async def wait(self) -> Optional[Any]:
         """Wait for task"""
-        try:
-            return await self._task  # type: ignore
-        except Exception:
-            raise
+        return await self._task  # type: ignore
 
     def start(self) -> None:
         """Start coro as task"""
