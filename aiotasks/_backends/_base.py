@@ -6,6 +6,7 @@ from .._structs import LTaskInfo, LTaskStatus
 from .._typing import LTaskUuid
 from .._exceptions import LTaskNotFount
 
+
 class BaseBackend(ABC):
     """Base class for Backend"""
 
@@ -20,19 +21,19 @@ class BaseBackend(ABC):
         self._url = url
 
     @abstractmethod
-    async def connect(self) -> None:  #pragma: no cover
+    async def connect(self) -> None:  # pragma: no cover
         pass
 
     @abstractmethod
-    async def close(self) -> None:  #pragma: no cover
+    async def close(self) -> None:  # pragma: no cover
         pass
 
     @abstractmethod
-    async def _write(self, key: str, value: dict) -> None:  #pragma: no cover
+    async def _write(self, key: str, value: dict) -> None:  # pragma: no cover
         pass
 
     @abstractmethod
-    async def _read(self, key: str) -> dict:  #pragma: no cover
+    async def _read(self, key: str) -> dict:  # pragma: no cover
         """Should raise RecordNotFound exception if record was not found"""
         pass
 
@@ -46,7 +47,9 @@ class BaseBackend(ABC):
         """Convert from LTaskInfo to key and value for write to backend"""
         key = BaseBackend._get_task_key(ltask_info.uuid)
         value = {
-            'status': ltask_info.status.value
+            'status': ltask_info.status.value,
+            'result': ltask_info.result,
+            'exc': ltask_info.exc
         }
         return key, value
 
@@ -59,7 +62,9 @@ class BaseBackend(ABC):
         try:
             ltask_info = LTaskInfo(
                 uuid=ltask_uuid,
-                status=LTaskStatus(value['status'])
+                status=LTaskStatus(value['status']),
+                result=value['result'],
+                exc=value['exc']
             )
         except (ValueError, KeyError):
             raise LTaskNotFount
@@ -83,4 +88,3 @@ class BaseBackend(ABC):
             raise LTaskNotFount
 
         return BaseBackend._convert_to_ltask_info(ltask_uuid, value)
-

@@ -28,5 +28,5 @@ class RedisBackend(BaseBackend):
         data = await self._redis.get(key=key)
         try:
             return json.loads(data)
-        except:
+        except (json.JSONDecodeError, TypeError):
             raise BaseBackend.RecordNotFound
