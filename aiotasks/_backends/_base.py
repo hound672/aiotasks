@@ -2,7 +2,7 @@ import asyncio
 from abc import ABC, abstractmethod
 from typing import Tuple
 
-from .._structs import LTaskInfo, LTaskStatus
+from .._structs import LTaskInfo, LTaskStatus, LTaskException
 from .._typing import LTaskUuid
 from .._exceptions import LTaskNotFount
 
@@ -46,10 +46,11 @@ class BaseBackend(ABC):
     def _convert_from_ltask_info(ltask_info: LTaskInfo) -> Tuple[str, dict]:
         """Convert from LTaskInfo to key and value for write to backend"""
         key = BaseBackend._get_task_key(ltask_info.uuid)
+        exc = None if ltask_info.exc is None else ltask_info.exc.__dict__
         value = {
             'status': ltask_info.status.value,
             'result': ltask_info.result,
-            'exc': ltask_info.exc
+            'exc': exc
         }
         return key, value
 
@@ -60,11 +61,12 @@ class BaseBackend(ABC):
             raise LTaskNotFount
 
         try:
+            exc = None if value['exc'] is None else LTaskException(**value['exc'])
             ltask_info = LTaskInfo(
                 uuid=ltask_uuid,
                 status=LTaskStatus(value['status']),
                 result=value['result'],
-                exc=value['exc']
+                exc=exc
             )
         except (ValueError, KeyError):
             raise LTaskNotFount
