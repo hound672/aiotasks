@@ -18,7 +18,7 @@ class DummyBackend(BaseBackend):
     async def close(self) -> None:
         pass
 
-    async def _write(self, key: str, value: dict) -> None:
+    async def _write(self, key: str, data: dict) -> None:
         pass
 
     async def _read(self, key: str) -> dict:
@@ -30,19 +30,51 @@ def dummy_backend():
     return DummyBackend(loop=None, url=None)
 
 
-def test_write_task_info(event_loop, dummy_backend):
-    ltask_info = LTaskInfo(uuid=LTaskUuid(uuid.uuid4().hex),
-                           status=random.choice(list(LTaskStatus)))
+def test__get_task_key(dummy_backend):
+    ltask_uuid = LTaskUuid(uuid.uuid4().hex)
+    assert dummy_backend._get_task_key(ltask_uuid) == f'aiotasks-task-{ltask_uuid}'
 
-    async def _fake(self, key: str, value: dict):
-        assert key == f'aiotasks-task-{ltask_info.uuid}'
-        assert value == {'status': ltask_info.status.value, 'result': None, 'exc': None}
+
+def test__write_called(event_loop, dummy_backend):
+    ltask_info = LTaskInfo(
+        uuid=uuid.uuid4().hex,
+        status=LTaskStatus.SUCCESS
+    )
+
+    async def _fake(self, key: str, data: dict):
+        globals()['write_called'] = True
 
     async def run():
         with patch.object(DummyBackend, '_write', new=_fake):
             await dummy_backend.write_task_info(ltask_info)
 
     event_loop.run_until_complete(run())
+    assert globals()['write_called']
+
+
+@pytest.mark.parametrize('uuid, status, result, exc', [
+    ('uuid_1', LTaskStatus.PROCESS, None, None),
+    ('uuid_2', LTaskStatus.PROCESS, {'r_key': 'v_key'}, None),
+    ('uuid_3', LTaskStatus.PROCESS, None, LTaskException(type='ValueError', message=['err_message']))
+])
+def test_write_task_info(uuid, status, result, exc, event_loop, dummy_backend):
+    ltask_info = LTaskInfo(
+        uuid=uuid,
+        status=status,
+        result=result,
+        exc=exc
+    )
+
+    async def _fake(self, key: str, data: dict):
+        assert key == dummy_backend._get_task_key(uuid)
+        assert data == {'status': status.value, 'result': result, 'exc': None if exc is None else exc.__dict__}
+
+    async def run():
+        with patch.object(DummyBackend, '_write', new=_fake):
+            await dummy_backend.write_task_info(ltask_info)
+
+    event_loop.run_until_complete(run())
+
 
 def test_read_task_info_record_not_found(event_loop, dummy_backend):
     async def _fake(self, key: str):
@@ -51,136 +83,30 @@ def test_read_task_info_record_not_found(event_loop, dummy_backend):
     async def run():
         with patch.object(DummyBackend, '_read', new=_fake):
             with pytest.raises(LTaskNotFount):
-                await dummy_backend.read_task_info(ltask_uuid=uuid.uuid4().hex)
+                await dummy_backend.read_task_info(uuid.uuid4().hex)
 
     event_loop.run_until_complete(run())
 
 
-def test_read_task_info_record_invalid_status(event_loop, dummy_backend, faker):
+@pytest.mark.parametrize('uuid, status, result, exc', [
+    ('uuid_1', LTaskStatus.PROCESS, None, None),
+    ('uuid_2', LTaskStatus.SUCCESS, {'r_key': 'v_key'}, None),
+    ('uuid_3', LTaskStatus.FAILURE, None, {'type': 'ValueError', 'message':['err_message']})
+])
+def test_read_task_info(uuid, status, result, exc, event_loop, dummy_backend):
+    data = {
+        'status': status.value,
+        'result': result,
+        'exc': exc
+    }
+
     async def _fake(self, key: str):
-        return {'status': faker.word()}
+        assert key == dummy_backend._get_task_key(uuid)
+        return {'status': status.value, 'result': result, 'exc': exc}
 
     async def run():
         with patch.object(DummyBackend, '_read', new=_fake):
-            with pytest.raises(LTaskNotFount):
-                await dummy_backend.read_task_info(ltask_uuid=uuid.uuid4().hex)
-
-    event_loop.run_until_complete(run())
-
-
-def test_read_task_info_record_invalid_struct_data(event_loop, dummy_backend, faker):
-    async def _fake(self, key: str):
-        return {faker.word(): faker.word()}
-
-    async def run():
-        with patch.object(DummyBackend, '_read', new=_fake):
-            with pytest.raises(LTaskNotFount):
-                await dummy_backend.read_task_info(ltask_uuid=uuid.uuid4().hex)
-
-    event_loop.run_until_complete(run())
-
-
-def test_read_task_info_record_invalid_data(event_loop, dummy_backend, faker):
-    async def _fake(self, key: str):
-        return faker.word()
-
-    async def run():
-        with patch.object(DummyBackend, '_read', new=_fake):
-            with pytest.raises(LTaskNotFount):
-                await dummy_backend.read_task_info(ltask_uuid=uuid.uuid4().hex)
-
-    event_loop.run_until_complete(run())
-
-
-def test_read_task_info_record(event_loop, dummy_backend):
-    ltask_info = LTaskInfo(uuid=LTaskUuid(uuid.uuid4().hex),
-                           status=random.choice(list(LTaskStatus)))
-
-    async def _fake(self, key: str):
-        assert key == f'aiotasks-task-{ltask_info.uuid}'
-        return {'status': ltask_info.status.value, 'result': None, 'exc': None}
-
-    async def run():
-        with patch.object(DummyBackend, '_read', new=_fake):
-            _ltask_info = await dummy_backend.read_task_info(ltask_uuid=ltask_info.uuid)
-            assert ltask_info == _ltask_info
-
-    event_loop.run_until_complete(run())
-
-def test_write_result_dict(event_loop, dummy_backend, faker):
-    result = {faker.word(): faker.word()}
-    ltask_info = LTaskInfo(uuid=LTaskUuid(uuid.uuid4().hex),
-                           status=random.choice(list(LTaskStatus)),
-                           result=result)
-
-    async def _fake(self, key: str, value: dict):
-        assert key == f'aiotasks-task-{ltask_info.uuid}'
-        assert value == {'status': ltask_info.status.value, 'result': result, 'exc': None}
-
-    async def run():
-        with patch.object(DummyBackend, '_write', new=_fake):
-            await dummy_backend.write_task_info(ltask_info)
-
-    event_loop.run_until_complete(run())
-
-
-def test_read_task_info_result(event_loop, dummy_backend, faker):
-    result = {faker.word(): faker.word()}
-    ltask_info = LTaskInfo(uuid=LTaskUuid(uuid.uuid4().hex),
-                           status=random.choice(list(LTaskStatus)),
-                           result=result)
-
-    async def _fake(self, key: str):
-        assert key == f'aiotasks-task-{ltask_info.uuid}'
-        return {'status': ltask_info.status.value, 'result': result, 'exc': None}
-
-    async def run():
-        with patch.object(DummyBackend, '_read', new=_fake):
-            _ltask_info = await dummy_backend.read_task_info(ltask_uuid=ltask_info.uuid)
-            assert ltask_info == _ltask_info
-
-    event_loop.run_until_complete(run())
-
-
-def test_write_with_exc(event_loop, dummy_backend, faker):
-    _exc_type = 'ValueError'
-    _exc_message = [faker.word()]
-    ltask_exc = LTaskException(type=_exc_type, message=_exc_message)
-    ltask_info = LTaskInfo(uuid=LTaskUuid(uuid.uuid4().hex),
-                           status=random.choice(list(LTaskStatus)),
-                           exc=ltask_exc)
-
-    async def _fake(self, key: str, value: dict):
-        assert key == f'aiotasks-task-{ltask_info.uuid}'
-        assert value == {'status': ltask_info.status.value,
-                         'result': None,
-                         'exc': {'type': _exc_type, 'message': _exc_message}
-                         }
-
-    async def run():
-        with patch.object(DummyBackend, '_write', new=_fake):
-            await dummy_backend.write_task_info(ltask_info)
-
-    event_loop.run_until_complete(run())
-
-def test_read_task_info_with_exception(event_loop, dummy_backend, faker):
-    _exc_type = 'ValueError'
-    _exc_message = [faker.word]
-    ltask_exc = LTaskException(type=_exc_type, message=_exc_message)
-    ltask_info = LTaskInfo(uuid=LTaskUuid(uuid.uuid4().hex),
-                           status=random.choice(list(LTaskStatus)),
-                           exc=ltask_exc)
-
-    async def _fake(self, key: str):
-        assert key == f'aiotasks-task-{ltask_info.uuid}'
-        return {'status': ltask_info.status.value,
-                'result': None,
-                'exc': {'type': _exc_type, 'message': _exc_message}
-                }
-
-    async def run():
-        with patch.object(DummyBackend, '_read', new=_fake):
-            _ltask_info = await dummy_backend.read_task_info(ltask_uuid=ltask_info.uuid)
-            assert ltask_info == _ltask_info
+            ltask_info = await dummy_backend.read_task_info(uuid)
+            assert ltask_info == LTaskInfo.from_backend(ltask_uuid=uuid, data=data)
 
     event_loop.run_until_complete(run())

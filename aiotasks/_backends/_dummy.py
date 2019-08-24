@@ -8,7 +8,7 @@ class DummyBackend(BaseBackend):
     async def close(self) -> None:
         pass  # pragma: no cover
 
-    async def _write(self, key: str, value: dict) -> None:
+    async def _write(self, key: str, data: dict) -> None:
         pass  # pragma: no cover
 
     async def _read(self, key: str) -> dict:

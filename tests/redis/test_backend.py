@@ -21,7 +21,7 @@ def test__write(event_loop, redis_backend, redis_client, faker):
     value = {faker.word(): faker.word()}
 
     async def run():
-        await redis_backend._write(key=key, value=value)
+        await redis_backend._write(key=key, data=value)
         read = await redis_client.get(key)
         assert read is not None
         assert json.loads(read) == value

@@ -20,9 +20,9 @@ class RedisBackend(BaseBackend):
     async def close(self) -> None:
         self._redis.close()  # pragma: no cover
 
-    async def _write(self, key: str, value: dict) -> None:
-        data = json.dumps(value)
-        await self._redis.set(key=key, value=data)
+    async def _write(self, key: str, data: dict) -> None:
+        _data = json.dumps(data)
+        await self._redis.set(key=key, value=_data)
 
     async def _read(self, key: str) -> dict:
         data = await self._redis.get(key=key)

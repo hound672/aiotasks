@@ -30,7 +30,7 @@ class BaseBackend(ABC):
         pass
 
     @abstractmethod
-    async def _write(self, key: str, value: dict) -> None:  # pragma: no cover
+    async def _write(self, key: str, data: dict) -> None:  # pragma: no cover
         pass
 
     @abstractmethod
@@ -43,41 +43,11 @@ class BaseBackend(ABC):
         """Return ltask's key as it stores in backend"""
         return f'aiotasks-task-{ltask_uuid}'
 
-    @staticmethod
-    def _convert_from_ltask_info_to_backend(ltask_info: LTaskInfo) -> Tuple[str, dict]:
-        """Convert from LTaskInfo to key and value for write to backend"""
-        key = BaseBackend._get_task_key(ltask_info.uuid)
-        exc = None if ltask_info.exc is None else ltask_info.exc.__dict__
-        value = {
-            'status': ltask_info.status.value,
-            'result': ltask_info.result,
-            'exc': exc
-        }
-        return key, value
-
-    @staticmethod
-    def _convert_to_ltask_info_from_backend(ltask_uuid: LTaskUuid, value: dict) -> LTaskInfo:
-        """Convert data from backend to LTaskInfo"""
-        if not isinstance(value, dict):
-            raise LTaskNotFount
-
-        try:
-            exc = None if value['exc'] is None else LTaskException(**value['exc'])
-            ltask_info = LTaskInfo(
-                uuid=ltask_uuid,
-                status=LTaskStatus(value['status']),
-                result=value['result'],
-                exc=exc
-            )
-        except (ValueError, KeyError):
-            raise LTaskNotFount
-
-        return ltask_info
-
     async def write_task_info(self, ltask_info: LTaskInfo) -> None:
         """Convert LTaskInfo and write to backend"""
-        key, value = BaseBackend._convert_from_ltask_info_to_backend(ltask_info)
-        await self._write(key=key, value=value)
+        _, data = ltask_info.to_backend()
+        key = BaseBackend._get_task_key(ltask_uuid=ltask_info.uuid)
+        await self._write(key=key, data=data)
 
     async def read_task_info(self, ltask_uuid: LTaskUuid) -> LTaskInfo:
         """
@@ -86,8 +56,8 @@ class BaseBackend(ABC):
         """
         key = BaseBackend._get_task_key(ltask_uuid)
         try:
-            value = await self._read(key)
+            data = await self._read(key)
         except BaseBackend.RecordNotFound:
             raise LTaskNotFount
 
-        return BaseBackend._convert_to_ltask_info_from_backend(ltask_uuid, value)
+        return LTaskInfo.from_backend(ltask_uuid=ltask_uuid, data=data)
