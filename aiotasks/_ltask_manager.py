@@ -27,27 +27,6 @@ class LTaskManager:
     def __len__(self) -> int:
         return len(self._ltasks)
 
-    @staticmethod
-    def _convert_ltask_exception(exc: Exception) -> LTaskException:
-        """Convert Exception instance to internal LTaskException instance"""
-        assert isinstance(exc, Exception), 'exc have to be Exception instance'
-        return LTaskException(
-            type=type(exc).__name__,
-            message=[i for i in exc.args]
-        )
-
-    @staticmethod
-    def _convert_from_ltask_to_ltask_info(*,
-                                          ltask_status: LTaskStatus,
-                                          ltask: LTask) -> LTaskInfo:
-        """Convert LTask to LTaskInfo for later written to backend"""
-        return LTaskInfo(
-            status=ltask_status,
-            uuid=ltask.uuid,
-            result=ltask.res,
-            exc=LTaskManager._convert_ltask_exception(ltask.exc)
-        )
-        return ltask_info
 
     @classmethod
     async def create_ltask_manager(cls, *,
