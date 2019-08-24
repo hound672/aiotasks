@@ -22,6 +22,7 @@ class BaseBackend(ABC):
 
     @abstractmethod
     async def connect(self) -> None:  # pragma: no cover
+        """Should raise ErrorConnectBackend exception if connection if fault"""
         pass
 
     @abstractmethod

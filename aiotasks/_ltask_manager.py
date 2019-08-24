@@ -5,7 +5,7 @@ from ._backends._base import BaseBackend
 from ._ltask import LTask
 from ._typing import LTaskUuid
 from ._exceptions import LTaskNotFount
-
+from ._helpers import get_backend_by_url
 
 class LTaskManager:
     """Manger for tasks"""
@@ -33,8 +33,12 @@ class LTaskManager:
                                    ) -> 'LTaskManager':
         """Create new instance of LTaskManager"""
         loop = asyncio.get_event_loop()
-        backend = None  # TODO !!!
-        # TODO try connect to backend
+        backend_cls = get_backend_by_url(back_end_url)
+        backend = backend_cls(
+            loop=loop,
+            url=back_end_url
+        )
+        await backend.connect()
         return cls(
             loop=loop,
             backend=backend,

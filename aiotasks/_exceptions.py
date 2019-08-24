@@ -1,6 +1,9 @@
 class AiotasksException(Exception):
     pass
 
+class UnknownBackend(AiotasksException):
+    pass
+
 class ErrorConnectBackend(AiotasksException):
     pass
 
