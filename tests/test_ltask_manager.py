@@ -5,6 +5,8 @@ import pytest
 
 from aiotasks._exceptions import LTaskNotFount
 from aiotasks._typing import LTaskUuid
+from aiotasks._ltask import LTask
+from aiotasks._structs import LTaskStatus, LTaskInfo
 
 def test_create_ltask(event_loop, ltask_manager):
 
@@ -73,3 +75,56 @@ def test_cancel_task(event_loop, ltask_manager):
         assert ltask_uuid not in ltask_manager._ltasks
 
     event_loop.run_until_complete(run())
+
+def test__convert_ltask_exception_exc_none(ltask_manager):
+    with pytest.raises(AssertionError):
+        ltask_manager._convert_ltask_exception(None)
+
+def test__convert_ltask_exception_not_exception(ltask_manager, faker):
+    with pytest.raises(AssertionError):
+        ltask_manager._convert_ltask_exception(faker.word())
+
+def test__convert_ltask_exception(ltask_manager, faker):
+    message = faker.word()
+    exc = ValueError(message)
+
+    ltask_exception = ltask_manager._convert_ltask_exception(exc)
+    assert ltask_exception.type == 'ValueError'
+    assert ltask_exception.message == [message]
+
+def test__convert_from_ltask_to_ltask_info(ltask_manager, faker):
+    message = faker.word()
+    exc = ValueError(message)
+    result = {faker.word(): faker.word()}
+    ltask = LTask(
+        loop=None, ltask_manager=ltask_manager, coro=None
+    )
+    ltask._res = result
+    ltask._exc = exc
+
+    ltask_info: LTaskInfo = ltask_manager._convert_from_ltask_to_ltask_info(
+        ltask_status=LTaskStatus.SUCCESS,
+        ltask=ltask
+    )
+
+    assert ltask_info.status == LTaskStatus.SUCCESS
+    assert ltask_info.result == result
+    assert ltask_info.exc.type == 'ValueError'
+    assert ltask_info.exc.message == [message]
+    assert ltask_info.uuid == ltask.uuid
+
+
+def test__convert_from_ltask_to_ltask_info_without_result_and_exception(ltask_manager, faker):
+    ltask = LTask(
+        loop=None, ltask_manager=ltask_manager, coro=None
+    )
+
+    ltask_info: LTaskInfo = ltask_manager._convert_from_ltask_to_ltask_info(
+        ltask_status=LTaskStatus.PROCESS,
+        ltask=ltask
+    )
+
+    assert ltask_info.status == LTaskStatus.PROCESS
+    assert ltask_info.result == None
+    assert ltask_info.exc == None
+    assert ltask_info.uuid == ltask.uuid

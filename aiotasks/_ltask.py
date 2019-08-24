@@ -6,7 +6,7 @@ from typing import Coroutine, Any, Optional
 if typing.TYPE_CHECKING:
     from ._ltask_manager import LTaskManager  # pragma: no cover
 
-from ._typing import LTaskUuid
+from ._typing import LTaskUuid, LTaskResult
 from ._exceptions import LTaskNotStarted
 
 class LTask:
@@ -14,7 +14,7 @@ class LTask:
 
     _task: Optional[asyncio.tasks.Task] = None
     _done: bool = False
-    _res: Optional[Any] = None
+    _res: Optional[LTaskResult] = None
     _exc: Optional[Exception] = None
 
     def __init__(self, *,

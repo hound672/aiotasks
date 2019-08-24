@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from enum import Enum, auto
 from typing import Union, Dict, Optional, List
 
-from ._typing import LTaskUuid
+from ._typing import LTaskUuid, LTaskResult
 
 
 class LTaskStatus(Enum):
@@ -23,5 +23,5 @@ class LTaskException:
 class LTaskInfo:
     uuid: LTaskUuid
     status: LTaskStatus
-    result: Optional[Union[str, int, Dict]] = None
+    result: Optional[LTaskResult] = None
     exc: Optional[LTaskException] = None
