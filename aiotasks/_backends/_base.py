@@ -45,7 +45,7 @@ class BaseBackend(ABC):
 
     async def write_task_info(self, ltask_info: LTaskInfo) -> None:
         """Convert LTaskInfo and write to backend"""
-        key, data = ltask_info.to_backend()
+        _, data = ltask_info.to_backend()
         key = BaseBackend._get_task_key(ltask_uuid=ltask_info.uuid)
         await self._write(key=key, data=data)
 
