@@ -19,4 +19,3 @@ def get_backend_by_url(url: str) -> Type[BaseBackend]:
         return backend
     except KeyError:
         raise UnknownBackend
-

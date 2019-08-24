@@ -5,6 +5,8 @@ import pytest
 
 from aiotasks._exceptions import LTaskNotFount
 from aiotasks._typing import LTaskUuid
+from aiotasks._ltask import LTask
+from aiotasks._structs import LTaskStatus, LTaskInfo
 
 def test_create_ltask(event_loop, ltask_manager):
 
@@ -73,3 +75,4 @@ def test_cancel_task(event_loop, ltask_manager):
         assert ltask_uuid not in ltask_manager._ltasks
 
     event_loop.run_until_complete(run())
+

@@ -6,6 +6,7 @@ from ._ltask import LTask
 from ._typing import LTaskUuid
 from ._exceptions import LTaskNotFount
 from ._helpers import get_backend_by_url
+from ._structs import LTaskStatus, LTaskInfo, LTaskException
 
 class LTaskManager:
     """Manger for tasks"""
@@ -25,6 +26,7 @@ class LTaskManager:
 
     def __len__(self) -> int:
         return len(self._ltasks)
+
 
     @classmethod
     async def create_ltask_manager(cls, *,
