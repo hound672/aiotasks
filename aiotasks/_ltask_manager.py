@@ -49,7 +49,7 @@ class LTaskManager:
 
     def create_ltask(self,
                      coro: Coroutine[Any, Any, Any],
-                     timeout: Optional[int] = None) -> LTaskUuid:
+                     timeout: Optional[int] = None) -> LTaskInfo:
         """Create ltask from coroutine"""
         ltask = LTask(
             ltask_manager=self,
@@ -61,7 +61,7 @@ class LTaskManager:
         # TODO write to backend ltasks's info
         ltask.start()
 
-        return ltask.uuid
+        return LTaskInfo.from_ltask(ltask_status=LTaskStatus.PROCESS, ltask=ltask)
 
     def cancel_task(self, ltask_uuid: LTaskUuid) -> None:
         """Cancel ltask by its uuid"""
