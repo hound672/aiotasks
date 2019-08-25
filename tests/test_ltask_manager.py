@@ -56,7 +56,7 @@ def test_cancel_task_not_found(event_loop, ltask_manager, faker): # TODO change 
         pass
 
     with pytest.raises(LTaskNotFount):
-        ltask_manager.cancel_task(LTaskUuid(faker.word()))
+        ltask_manager.cancel_ltask(LTaskUuid(faker.word()))
 
     event_loop.run_until_complete(run())
 
@@ -67,7 +67,7 @@ def test_cancel_task(event_loop, ltask_manager):
     async def run():
         ltask_info = ltask_manager.create_ltask(_test_task())
         _task = ltask_manager._ltasks[ltask_info.uuid]
-        ltask_manager.cancel_task(ltask_info.uuid)
+        ltask_manager.cancel_ltask(ltask_info.uuid)
         try:
             await _task.wait()
         except Exception:

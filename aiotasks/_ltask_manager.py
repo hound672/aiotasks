@@ -88,7 +88,7 @@ class LTaskManager:
 
         return ltask_info
 
-    def cancel_task(self, ltask_uuid: LTaskUuid) -> None:
+    def cancel_ltask(self, ltask_uuid: LTaskUuid) -> None:
         """Cancel ltask by its uuid"""
         try:
             ltask = self._ltasks[ltask_uuid]
