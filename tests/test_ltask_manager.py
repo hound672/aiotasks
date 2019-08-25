@@ -76,3 +76,19 @@ def test_cancel_task(event_loop, ltask_manager):
 
     event_loop.run_until_complete(run())
 
+# def test_create_task(event_loop, ltask_manager):
+#     globals()['ltask_info'] = None
+#     async def _test_task():
+#         await asyncio.sleep(1)
+#
+#     async def _fake_write_task_info(self, ltask_info: LTaskInfo):
+#         breakpoint()
+#         assert globals()['ltask_info'] == ltask_info
+#
+#     async def run():
+#         with mock.patch('aiotasks._backends._dummy.DummyBackend.write_task_info', new=_fake_write_task_info):
+#             globals()['ltask_info'] = ltask_manager.create_ltask(_test_task())
+#             await asyncio.sleep(1)
+#
+#
+#     event_loop.run_until_complete(run())
