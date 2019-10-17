@@ -30,8 +30,14 @@ def dummy_backend():
     return DummyBackend(loop=None, url=None)
 
 
-def test__get_task_key(dummy_backend):
+# def test__get_task_key(dummy_backend):
+def test__get_task_key():
+    from unittest.mock import create_autospec
+    DummyBackend = create_autospec(BaseBackend)
+
     ltask_uuid = LTaskUuid(uuid.uuid4().hex)
+
+    breakpoint()
     assert dummy_backend._get_task_key(ltask_uuid) == f'aiotasks-task-{ltask_uuid}'
 
 
@@ -42,6 +48,7 @@ def test__write_called(event_loop, dummy_backend):
     )
 
     async def _fake(self, key: str, data: dict):
+        pass
         globals()['write_called'] = True
 
     async def run():
